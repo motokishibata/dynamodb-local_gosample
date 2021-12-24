@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  dynamodb-local:
+    command: "-jar DynamoDBLocal.jar -sharedDb -dbPath ./data"
+    image: "amazon/dynamodb-local:1.17.2"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    volumes:
+      - "./dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+  dynamodb-admin:
+    container_name: dynamodb-admin
+    image: aaronshaf/dynamodb-admin:latest
+    environment:
+      DYNAMO_ENDPOINT: 'dynamodb-local:8000'
+    ports:
+      - 8001:8001
+    depends_on:
+      - dynamodb-local
+  app:
+    image: golang:1.17.5-bullseye
+    container_name: dynamodb-gosample
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "dynamodb-local"
+    links:
+      - "dynamo-local"
+    tty: true
+    environment:
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      REGION: 'es-west-1'
+    volumes:
+      - "./go:/app/go"
+    working_dir: /app/go
+    
